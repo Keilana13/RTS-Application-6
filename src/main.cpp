@@ -1,16 +1,13 @@
-/* ESP32 HTTP IoT Server Example for Wokwi.com
+/*
+Company: MedAid Inc. - Wearable Heart Monitor
+Project: RTS for Heartbeat Monitoring and Alerting
+Author: Keilana Brooks
 
-  https://wokwi.com/projects/320964045035274834
-
-  To test, you need the Wokwi IoT Gateway, as explained here:
-
+Wokwi IoT Gateway explained here:
   https://docs.wokwi.com/guides/esp32-wifi#the-private-gateway
 
   Then start the simulation, and open http://localhost:9080
   in another browser tab.
-
-  Note that the IoT Gateway requires a Wokwi Club subscription.
-  To purchase a Wokwi Club subscription, go to https://wokwi.com/club
 */
 
 #include <Arduino.h>
@@ -34,7 +31,8 @@
 #define WIFI_CHANNEL 6
 
 SemaphoreHandle_t sensorSemaphore;   // counting semaphore
-SemaphoreHandle_t buttonSemaphore;   // binary semaphore
+SemaphoreHandle_t buttonSemISR;   // binary semaphore
+SemaphoreHandle_t buttonTaskSem;   // binary semaphore
 SemaphoreHandle_t serialMutex;       // mutex for serial printing
 QueueHandle_t sensorQueue;           // optional for extra credit
 
@@ -47,6 +45,13 @@ const int LED2 = 15;
 
 bool led1State = false;
 bool led2State = false;
+
+// function to log time in ms
+void logTime() {
+  Serial.print("[");
+  Serial.print(millis());
+  Serial.print(" ms] ");
+}
 
 void sendHtml() {
   String response = R"(
@@ -83,35 +88,55 @@ void sendHtml() {
   server.send(200, "text/html", response);
 }
 
-// blinks green LED at 1 Hz
+// Heartbeat Task: blinks green LED at 1 Hz (soft deadline)
 void HeartbeatTask(void *pvParameters) {
   Serial.println("Heartbeat Monitor System Starting...");
   while (1) {
     digitalWrite(GREEN_LED, HIGH);
+    // log heartbeat time
+    xSemaphoreTake(serialMutex, portMAX_DELAY);
+    logTime();
+    Serial.println("Heartbeat: Patient stable");
+    xSemaphoreGive(serialMutex);
+    
     vTaskDelay(pdMS_TO_TICKS(1000));
     digitalWrite(GREEN_LED, LOW);
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
 
-// monitors the button state and signals semaphore on press
-void ButtonTask(void *pvParameters) {
-  bool lastState = HIGH;
-  bool currentState;
+// ISR for button press - gives binary semaphore to button task
+void IRAM_ATTR buttonISR() {
+  // Copilot. Accessed 2025-12-04. Prompt: "when i press the button one time this line prints twice with 1000ms between each line: Button event: System switched from normal to alert!" Generated using Copilot.
+  static unsigned long lastInterruptTime = 0;
+  unsigned long interruptTime = millis();
+  
+  // Debouncing: ignore if interrupt occurred within 200ms
+  if (interruptTime - lastInterruptTime > 200) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xSemaphoreGiveFromISR(buttonSemISR, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+  }
+  
+  lastInterruptTime = interruptTime;
+}
 
+
+// Button Task: monitors the button state 
+// triggered by ISR via binary semaphore
+// immediate falling edge detection (hard deadline)
+void ButtonTask(void *pvParameters) {
+  // ChatGPT. Accessed 2025-12-04. Prompt: "i want to keep the button task, but have the event handler task handle the event, but still use the ISR." Generated using ChatGPT.
   while (1) {
-    currentState = digitalRead(BUTTON_PIN);
-    // detect falling edge
-    if (currentState == LOW && lastState == HIGH) {
-      xSemaphoreGive(buttonSemaphore);
-      vTaskDelay(pdMS_TO_TICKS(50)); // debounce delay
+    // Wait for ISR to give semaphore to button task
+    if (xSemaphoreTake(buttonSemISR, portMAX_DELAY)) {
+      // give semaphore to event_handler_task to handle the button event
+      xSemaphoreGive(buttonTaskSem);
     }
-    lastState = currentState;
-    vTaskDelay(pdMS_TO_TICKS(10));
   }
 }
 
-// reads the analog sensor every 17 ms
+// Sensor Task: reads patient heartbeat every 17 ms (hard deadline)
 void SensorTask(void *pvParameters) {
   while (1) {
     int val = analogRead(POT_PIN);
@@ -126,7 +151,7 @@ void SensorTask(void *pvParameters) {
   }
 }
 
-// handles events signaled by semaphores
+// Event Handler Task: handles events/alerts signaled by semaphores (soft deadline)
 void event_handler_task(void *pvParameters) {
     while (1) {
         // if a high heartbeat sensor event occurred, print alert and blink red LED
@@ -134,20 +159,24 @@ void event_handler_task(void *pvParameters) {
             SEMCNT--;
 
             xSemaphoreTake(serialMutex, portMAX_DELAY);
+            logTime();
             Serial.println("Sensor event: High Heartbeat Set! Check Patient.");
             xSemaphoreGive(serialMutex);
 
+            // blink red LED for 100 ms (soft deadline)
             digitalWrite(RED_LED, HIGH);
             vTaskDelay(pdMS_TO_TICKS(100));
             digitalWrite(RED_LED, LOW);
         }
 
         // if button event occurred, print alert and turn on blue LED 
-        if (xSemaphoreTake(buttonSemaphore, 0)) {
+        if (xSemaphoreTake(buttonTaskSem, 0)) {
             xSemaphoreTake(serialMutex, portMAX_DELAY);
+            logTime();
             Serial.println("Button event: System switched from normal to alert!");
             xSemaphoreGive(serialMutex);
 
+            // blink blue LED for 1 second (soft deadline)
             digitalWrite(BLUE_LED, HIGH);
             vTaskDelay(pdMS_TO_TICKS(1000));
             digitalWrite(BLUE_LED, LOW);
@@ -171,12 +200,16 @@ void setup() {
   // configure ADC pin
   pinMode(POT_PIN, INPUT);
 
+  // interrupt for button press
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), buttonISR, FALLING);
+
   // create queue for sensor values
   sensorQueue = xQueueCreate(10, sizeof(int));
 
   // semaphores and mutex initialization
   sensorSemaphore = xSemaphoreCreateCounting(MAX_COUNT_SEM, 0);
-  buttonSemaphore = xSemaphoreCreateBinary();
+  buttonSemISR = xSemaphoreCreateBinary();
+  buttonTaskSem = xSemaphoreCreateBinary();
   serialMutex = xSemaphoreCreateMutex();
 
   // Connect to WiFi
