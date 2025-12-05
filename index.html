@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTS Application 6 - Wearable Heart Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h2:first-child {
+            margin-top: 0;
+        }
+        
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            max-width: 100%;
+            margin: 30px 0;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .task-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .task-table th,
+        .task-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .task-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .task-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .hard-deadline {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        .soft-deadline {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+        
+        footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .github-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: transform 0.2s;
+        }
+        
+        .github-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🫀 Wearable Heart Monitor</h1>
+            <p>Real-Time Embedded System for Cardiac Patient Monitoring</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Keilana Brooks | EEE 4775: RTS | Application 6</p>
+        </header>
+        
+        <div class="content">
+            <h2>📹 Project Demo</h2>
+            <div class="video-container">
+                <!-- Replace VIDEO_ID_HERE with your actual YouTube video ID -->
+                <iframe src="https://www.youtube.com/embed/VIDEO_ID_HERE" 
+                        allowfullscreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+                </iframe>
+            </div>
+            <p style="text-align: center; color: #e74c3c; font-weight: bold;">⚠️ Replace VIDEO_ID_HERE in the HTML with your actual YouTube video ID</p>
+            
+            <h2>📋 Project Description</h2>
+            <p>
+                MedAid Inc. develops real-time wearable health monitors for cardiac patients. Their products detect abnormal vitals instantly while keeping power usage low. Real-time performance is vital for MedAid because a missed deadline could delay warnings in real scenarios putting the patient at risk.
+            </p>
+            <p>
+                The goal of this system is to create an embedded system for MedAid Inc.'s Wearable Heart Monitor. The system monitors the patient's heartbeat and when a high heartbeat is detected, an alert is displayed on the monitor and the red LED blinks. If a button press is detected, an alert is sent to the monitor and the blue LED blinks to notify the patient that the system's state has switched from normal to alert. Meanwhile, there is also a green LED that is always blinking to mimic the detected patient's heartbeat. Lastly, the red and blue LEDs can be controlled by an ESP32 webpage.
+            </p>
+            
+            <h3>🔧 Technical Implementation</h3>
+            <p>
+                The system transforms a basic ESP32 web-controlled LED system into a real-time, multitasking application using <strong>FreeRTOS</strong>. Starting from an Arduino-style WiFi web server, the system is expanded with tasks that monitor an analog sensor, detect button presses using an ISR, handle alerts, and maintain a heartbeat LED. Using binary semaphores, counting semaphores, and a mutex, the tasks safely coordinate events and protect shared resources like Serial output. The ESP32 is simulated in Wokwi with WiFi enabled so the webpage can remotely toggle LEDs and interact with system states.
+            </p>
+            
+            <h2>📊 Task Architecture</h2>
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Task Name</th>
+                        <th>Description</th>
+                        <th>Deadline Type</th>
+                        <th>Impact if Missed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Button ISR</strong></td>
+                        <td>External interrupt (button press); blue LED 1s period</td>
+                        <td class="hard-deadline">Hard</td>
+                        <td>Alert may be delayed, putting the patient at risk</td>
+                    </tr>
+                    <tr>
+                        <td><strong>EventHandlerTask</strong></td>
+                        <td>Triggered by semaphores</td>
+                        <td class="hard-deadline">Hard</td>
+                        <td>System fails to execute alert mode fast enough</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SensorReadTask</strong></td>
+                        <td>Every 17 ms; red LED 100ms period</td>
+                        <td class="hard-deadline">Hard</td>
+                        <td>Patient is not alerted of high heartrate</td>
+                    </tr>
+                    <tr>
+                        <td><strong>HeartbeatTask</strong></td>
+                        <td>Every 1000 ms</td>
+                        <td class="soft-deadline">Soft</td>
+                        <td>Heartbeat synchronization is off but core system is still functional</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h2>🎯 Design Analysis</h2>
+            
+            <h3>Q1: Scheduler Fit</h3>
+            <p><strong>How do your task priorities / RTOS settings guarantee every task's deadline in Wokwi?</strong></p>
+            <p>
+                The task priorities ensure that hard deadlines are met. The sensor and button tasks have the highest priorities because they are hard deadline tasks. We can see that the deadlines were met for each task in the timestamps in the terminal:
+            </p>
+            <pre>[8353 ms] Button event: System switched from normal to alert!
+[10253 ms] Button event: System switched from normal to alert!</pre>
+            <p>
+                As soon as the button was pressed, the event of the terminal print and LED blinking occurred. The RTOS settings of the binary semaphores also ensured that tasks executed when a certain event occurred instead of constantly looping to check if a condition was met.
+            </p>
+            
+            <h3>Q2: Race‑Proofing</h3>
+            <p><strong>Where could a race occur? Show the exact line(s) you protected and which primitive solved it.</strong></p>
+            <p>
+                A race could occur between the heartbeat task and the event_handler_task print to Serial. Since the green LED is constantly blinking, the timing of when the blue LED blinks could align. The race between these tasks is prevented through the use of a mutex for the Serial:
+            </p>
+            <pre>// from heartbeat_task
+// log heartbeat time
+xSemaphoreTake(serialMutex, portMAX_DELAY);
+logTime();
+Serial.println("Heartbeat: Patient stable");
+xSemaphoreGive(serialMutex);
+
+// from event_sensor_task for the sensor event
+xSemaphoreTake(serialMutex, portMAX_DELAY);
+logTime();
+Serial.println("Sensor event: High Heartbeat Set! Check Patient.");
+xSemaphoreGive(serialMutex);</pre>
+            
+            <h3>Q3: Worst‑Case Spike</h3>
+            <p><strong>Describe the heaviest load you threw at the prototype.</strong></p>
+            <p>
+                The heaviest load I threw at the prototype was a sensor spam from the SensorTask. When the SensorTask detects the sensor at a value higher than the threshold, it prints an alert every 10ms. So, there is a margin of 10ms which allows other tasks to print to the terminal if needed. After this 10ms margin, a deadline would most likely slip.
+            </p>
+            
+            <h3>Q4: Design Trade‑off</h3>
+            <p><strong>Name one feature you didn't add (or simplified) to keep timing predictable.</strong></p>
+            <p>
+                A feature I kept simplified to keep timing predictable were the features of the web server. This simplification was intentional to avoid unpredictable delays that could interfere with the heartbeat monitoring and alert tasks. For a wearable heart monitor, ensuring hard deadlines for sensor readings and alerts are critical for patient safety. I support my decision because it was the right trade‑off to prioritize timing predictability over advanced features.
+            </p>
+            
+            <h2>💻 Technologies Used</h2>
+            <ul style="list-style-position: inside; margin-left: 20px;">
+                <li>ESP32 Development Board (Wokwi Simulation)</li>
+                <li>FreeRTOS for Real-Time Task Scheduling</li>
+                <li>Arduino Framework</li>
+                <li>PlatformIO Build System</li>
+                <li>Binary Semaphores, Counting Semaphores, and Mutex for Synchronization</li>
+                <li>WiFi Web Server for Remote LED Control</li>
+            </ul>
+            
+            <a href="https://github.com/Keilana13/RTS-Application-6" class="github-link" target="_blank">
+                🔗 View Project on GitHub
+            </a>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 Keilana Brooks | University of Central Florida | EEE 4775: Real-Time Systems</p>
+        </footer>
+    </div>
+</body>
+</html>
