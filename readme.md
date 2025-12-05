@@ -3,7 +3,7 @@
 # Application 6
 
 ## Project Description
-The goal of Application 6 is to make a system for the healthcare tech company, MedAid Inc., for their Wearable Heart Monitor. The system monitors the patient's heartbeat and when a high heartbeat is detected, an alert is displayed on the monitor and the red LED blinks. If a button press is detected, an alert is sent to the monitor and the blue LED blinks to notify the patient that the system's state has switched from normal to alert. Meanwhile, there is also a green LED that is always blinking to mimic the detected patient's heartbeat. Lastly, the red and blue LEDs can be controlled by a ESP32 webpage.  
+MedAid Inc. develops real-time wearable health monitors for cardiac patients. Their products detect abnormal vitals instantly while keeping power usage low. Real-time performance is vital for MedAid because a missed deadline could delay warnings in real scenarios putting the patient at risk. The goal of my system is to make an embedded system for MedAid Inc. for their Wearable Heart Monitor. The system monitors the patient's heartbeat and when a high heartbeat is detected, an alert is displayed on the monitor and the red LED blinks. If a button press is detected, an alert is sent to the monitor and the blue LED blinks to notify the patient that the system's state has switched from normal to alert. Meanwhile, there is also a green LED that is always blinking to mimic the detected patient's heartbeat. Lastly, the red and blue LEDs can be controlled by a ESP32 webpage.  
 
 In more technical terms, the system is a basic ESP32 web-controlled LED system into a real-time, multitasking application using FreeRTOS. Starting from an Arduino-style WiFi web server, the system is expanded with tasks that monitor an analog sensor, detect button presses using an ISR, handle alerts, and maintain a heartbeat LED. Using binary semaphores, counting semaphores, and a mutex, the tasks safely coordinate events and protect shared resources like Serial output. The ESP32 is simulated in Wokwi with WiFi enabled so the webpage can remotely toggle LEDs and interact with system states. 
 
@@ -33,6 +33,17 @@ The heaviest load I threw at the prototype was a sensor spam from the SensorTask
 
 ### Q4:Design Trade‑off: Name one feature you didn’t add (or simplified) to keep timing predictable. Why was that the right call for your chosen company?
 A feature I kept simiplified to keep timing predictable were the features of the web server. This simplification was intentional to avoid unpredictable delays that could interfere with the heartbeat monitoring and alert tasks. For a wearable heart monitor, ensuring hard deadlines for sensor readings and alerts are critical for patient safety. So, I support my decision because it was the right trade‑off to prioritize timing predictability over advanced features.
+
+## Task Table
+%% ================================================================
+Button ISR | External interrupt (button press); blue LED 1s period | Hard | Alert may be delayed, putting the patient at risk
+%% ================================================================
+EventHandlerTask | Triggered by semaphores | Hard | System fails to execute alert mode fast enough
+%% ================================================================
+SensorReadTask | Every 17 ms; red LED 100ms period | Hard | Patient is not alerted of high heartrate
+%% ================================================================
+HeartbeatTask | Every 1000 ms | Soft | Heartbeat synchronization is off but core system is still functional
+%% ================================================================
 
 ## AI Tool Use:
 ### Inside ISR for debouncing problem:
